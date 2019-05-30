@@ -19,6 +19,7 @@
 {-# LANGUAGE ViewPatterns #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE TypeApplications #-}
 
 module Data.Sheet where
 
@@ -123,7 +124,9 @@ data Columns = Items | Prices | Total
 --     go (Y 1) = 'B'
 --     go (Y 2) = 'C'
 
-pattern ItemsP n <- (flatten -> RowI n :: RowI Items m)
+-- pattern ItemsP :: forall n xs. Ref xs -> RowI Items n
+pattern ItemsP :: forall n xs. Inject (RowI Items n) xs => Finite n -> Ref xs
+pattern ItemsP n <- (flatten -> RowI n :: RowI Items n)
 -- pattern inject (Inj :: Inj Items, n) <- ItemsP n
 
 
@@ -133,7 +136,7 @@ q = fix $ \w -> tabulate (go w)
     go :: Sheet '[Rows 'Items 3, Rows 'Prices 3, Single 'Total] Double
        -> Ref '[Rows Items 3, Rows Prices 3, Single Total]
        -> Double
-    go _ (ItemsP (0 :: Finite 3)) = 10
+    -- go _ (ItemsP @3 0) = 10
     go _ (Y 1) = 20
     go _ (Y 2) = 30
 
